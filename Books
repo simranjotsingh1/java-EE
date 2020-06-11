@@ -1,0 +1,324 @@
+Books.java-----------------------------------
+
+public class Books {
+ /**
+  * @param args
+  */
+ private int id;
+ private String name;
+ private String author;
+ public int getId() {
+  return id;
+ }
+ public void setId(int id) {
+  this.id = id;
+ }
+ public String getName() {
+  return name;
+ }
+ public void setName(String name) {
+  this.name = name;
+ }
+ public String getAuthor() {
+  return author;
+ }
+ public void setAuthor(String author) {
+  this.author = author;
+ }
+ public Books(int id, String name, String author) {
+  super();
+  this.id = id;
+  this.name = name;
+  this.author = author;
+ }
+ @Override
+ public String toString() {
+  return "book [id=" + id + ", name=" + name + ", author=" + author + "]";
+ }
+ }
+ 
+ =================================================================
+ BooksDao.java
+ /**
+ *
+ */
+package com.cestar.Dao;
+
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Scanner;
+
+import com.cestar.model.Books;
+
+public class BooksDao {
+
+	// Write a method to create a connection with database
+
+	public Connection getConnection() {
+
+		// Register the driver Class
+
+		Connection con = null;
+
+		try {
+			Class.forName("com.mysql.jdbc.Driver");
+
+			String url = "jdbc:mysql://localhost:3306/bookstore";
+
+			String user = "root";
+
+			String pwd = "";
+
+			con = DriverManager.getConnection(url, user, pwd);
+
+			System.out.println("Connection Successfull:");
+
+		} catch (ClassNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return con;
+
+	}
+
+	public void displayAllBooks() {
+
+		Connection con = getConnection();
+
+		List<Books> books = new ArrayList<>();
+
+		String sql = "select * from books";
+
+		try {
+
+			Statement stmt = con.createStatement();
+
+			ResultSet rs = stmt.executeQuery(sql);
+
+			while (rs.next()) {
+
+				Books b1 = new Books(rs.getInt(1), rs.getString(2), rs.getString(3));
+
+				books.add(b1);
+
+			}
+
+			for (int i = 0; i < books.size(); i++) {
+
+				System.out.println("Book  ID= " + books.get(i).getId() + "  Name= " + books.get(i).getName()
+						+ "  Author= " + books.get(i).getAuthor());
+			}
+
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
+
+	public void insertBook() throws SQLException {
+
+		String sql1 = "insert into books values (665,'Lost World','Gai De Mopasan')";
+
+		Connection con1 = getConnection();
+
+		Statement stmt = con1.createStatement();
+
+		try {
+			Statement stmt1 = con1.createStatement();
+
+			int status = stmt1.executeUpdate(sql1);
+
+			if (status > 0) {
+				System.out.println("Record inserted successfully");
+			} else {
+				System.out.println("Please try again");
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+
+	public void insertDynamic() throws SQLException {
+
+		Scanner sc = new Scanner(System.in);
+
+		System.out.println("Please enter ID of your Book:");
+
+		int id = sc.nextInt();
+
+		sc.nextLine();
+
+		System.out.println("Please enter the name of your book:");
+
+		String name = sc.nextLine();
+
+		System.out.println("Please enter the author of book:");
+
+		String author = sc.nextLine();
+
+		String sql1 = "insert into books values(?,?,?)";
+
+		Connection con1 = getConnection();
+
+		PreparedStatement pstmt = con1.prepareStatement(sql1);
+
+		try {
+			PreparedStatement pstmt1 = con1.prepareStatement(sql1);
+
+			pstmt1.setInt(1, id);
+
+			pstmt1.setString(2, name);
+
+			pstmt1.setString(3, author);
+
+			int status = pstmt1.executeUpdate();
+
+			if (status > 0) {
+				System.out.println("Record inserted successfully");
+			} else {
+				System.out.println("Please try again");
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+
+	public void insertMoreBooks() throws SQLException {
+
+		Scanner sc = new Scanner(System.in);
+
+		System.out.println("Please enter how many books you want to insert");
+
+		int number = sc.nextInt();
+
+		for (int i = 1; i <= number; i++) {
+
+			insertDynamic();
+			if (i == number) {
+				System.out.println("You entered " + number + " books in total");
+			}
+		}
+
+	}
+
+	public void deleteBook() {
+
+		int ch = 10;
+		Scanner sc = new Scanner(System.in);
+		while (ch != 0) {
+
+			System.out.print(" Please enter 1 to delete and 0  to exit");
+			ch = sc.nextInt();
+			if (ch == 1) {
+				String sql = "delete from books where id =?";
+
+				System.out.println("Please enter the id to be deleted");
+				int id = sc.nextInt();
+				Connection con = getConnection();
+				try {
+					PreparedStatement pstmt = con.prepareStatement(sql);
+					pstmt.setInt(1, id);
+					int status = pstmt.executeUpdate();
+					if (status > 0) {
+						System.out.println("deleted");
+						displayAllBooks();
+
+					} else {
+						System.out.println("please try again");
+					}
+					System.exit(0);
+
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+			} else {
+				if (ch == 0) {
+					System.out.println("Thank you");
+				}
+
+				else {
+
+					System.out.print("please enter either 0 or 1");
+				}
+			}
+		}
+	}
+
+	public void updateBook() {
+
+		Scanner sc = new Scanner(System.in);
+		System.out.print("Please enter the id of book");
+		int currentId = sc.nextInt();
+		System.out.print("Please enter the updated id");
+		int updatedId = sc.nextInt();
+		sc.nextLine();
+		System.out.print("Please enter the updated name");
+		String updatedName = sc.nextLine();
+		System.out.print("Please enter the updated author");
+		String updatedAuthor = sc.nextLine();
+		String sql = "update books set id=?, name=?,author=? where id =?";
+		Connection con = getConnection();
+		try {
+			PreparedStatement pstmt = con.prepareStatement(sql);
+
+			pstmt.setInt(1, updatedId);
+			;
+
+			pstmt.setString(2, updatedName);
+			;
+
+			pstmt.setString(3, updatedAuthor);
+			;
+
+			pstmt.setInt(4, currentId);
+
+			int status = pstmt.executeUpdate();
+			if (status > 0) {
+
+				System.out.println("Record Updated Successfully");
+			} else {
+				System.out.println("try again");
+
+			}
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+	}
+
+===============================================================================
+DaoRunner
+
+package com.cestar.controller;
+
+import java.sql.SQLException;
+
+import com.cestar.Dao.BooksDao;
+
+public class DaoRunner {
+
+	public static void main(String[] args) throws SQLException {
+		// TODO Auto-generated method stub
+
+		BooksDao obj = new BooksDao();
+		
+		obj.getConnection();
+		obj.displayAllBooks();
+	
+			obj.insertDynamic();
+		
+		
+	
+	}
+
+}
+
+}
